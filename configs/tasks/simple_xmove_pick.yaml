@@ -1,0 +1,7 @@
+# SIMPLE: xmove + pick. Placeholder.
+
+defaults:
+  - ../psi0_simple
+
+task:
+  name: simple_xmove_pick

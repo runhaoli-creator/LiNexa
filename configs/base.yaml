@@ -1,0 +1,24 @@
+# Base config shared by all experiments. Placeholder only.
+
+seed: 0
+
+model:
+  name: null      # e.g. psi0
+  checkpoint: null
+
+env:
+  name: null      # e.g. simple
+
+ttt:
+  enabled: false
+  scope: episode  # episode | step
+  target: null    # e.g. fast_ff
+  decay: 0.0
+
+eval:
+  mode: open_loop  # open_loop | closed_loop
+  n_episodes: 0
+
+logging:
+  wandb: false
+  out_dir: outputs/

@@ -1,0 +1,11 @@
+# Psi0 policy on SIMPLE environments. Placeholder.
+
+defaults:
+  - base
+
+model:
+  name: psi0
+  checkpoint: null
+
+env:
+  name: simple

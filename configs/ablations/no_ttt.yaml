@@ -1,0 +1,7 @@
+# Baseline: no TTT. Placeholder.
+
+defaults:
+  - ../base
+
+ttt:
+  enabled: false

@@ -1,0 +1,10 @@
+# TTT on feed-forward fast weights, with decay. Placeholder.
+
+defaults:
+  - ../base
+
+ttt:
+  enabled: true
+  scope: episode
+  target: fast_ff
+  decay: 0.01

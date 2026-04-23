@@ -1,0 +1,9 @@
+[submodule "extern/psi0"]
+	path = extern/psi0
+	url = https://github.com/physical-superintelligence-lab/Psi0.git
+[submodule "extern/simple"]
+	path = extern/simple
+	url = https://github.com/physical-superintelligence-lab/SIMPLE.git
+[submodule "extern/in_place_ttt"]
+	path = extern/in_place_ttt
+	url = https://github.com/ByteDance-Seed/In-Place-TTT.git

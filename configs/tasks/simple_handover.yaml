@@ -1,0 +1,7 @@
+# SIMPLE: handover. Placeholder.
+
+defaults:
+  - ../psi0_simple
+
+task:
+  name: simple_handover
