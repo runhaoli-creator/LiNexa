@@ -1,0 +1,115 @@
+# LiNexa — psi0 server + SIMPLE eval, wired to images that already exist on
+# this host (psi0:latest, simple:latest). No build step. All host paths are
+# resolved relative to $LINEXA_ROOT (exported by scripts/eval/*.sh).
+
+name: linexa-eval
+
+# ---------------------------------------------------------------------------
+# psi0 inference server.
+#
+# The `psi0:latest` image already contains the uv-managed .venv at
+# /opt/venv-psi and has the `serve_psi0` console script registered. The venv
+# uses an editable install against /workspace/src, so we bind-mount the
+# extern/psi0 submodule to /workspace and everything resolves.
+# ---------------------------------------------------------------------------
+x-psi0-server-base: &psi0-server-base
+  image: psi0:latest
+  runtime: nvidia
+  network_mode: host
+  shm_size: "16gb"
+  environment:
+    - NVIDIA_VISIBLE_DEVICES=${PSI0_GPUS:-0}
+    - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    - HF_TOKEN=${HF_TOKEN:-}
+    - HF_HOME=/hfm/cache
+    - PSI_HOME=/hfm
+    - DATA_HOME=/hfm/data
+    - TORCH_HOME=/hfm/cache
+    - UV_CACHE_DIR=/hfm/cache
+    - PSI0_RUN_DIR=${PSI0_RUN_DIR}
+    - PSI0_CKPT_STEP=${PSI0_CKPT_STEP:-latest}
+    - PSI0_SERVER_PORT=${PSI0_SERVER_PORT:-22085}
+    - PSI0_ACTION_HORIZON=${PSI0_ACTION_HORIZON:-24}
+    - PSI0_RTC=${PSI0_RTC:-1}
+  volumes:
+    # psi0 source (editable install .pth points at /workspace/src)
+    - ${LINEXA_ROOT}/extern/psi0:/workspace
+    # psi0 checkpoints (read-only to the server)
+    - ${LINEXA_ROOT}/checkpoints/psi0:/workspace/psi0-ckpts:ro
+    # PSI_HOME: uv / HF / Torch caches
+    - ${LINEXA_ROOT}/data/psi_home:/hfm
+    # Server-side entrypoint (image ships nvidia entrypoint, we override)
+    - ${LINEXA_ROOT}/docker/psi0-server-entrypoint.sh:/opt/psi0-server-entrypoint.sh:ro
+  working_dir: /workspace
+  entrypoint: ["/bin/bash", "/opt/psi0-server-entrypoint.sh"]
+
+services:
+  psi0-server:
+    <<: *psi0-server-base
+    container_name: linexa-psi0-server
+
+  # Shell into the same environment for debugging.
+  psi0-shell:
+    <<: *psi0-server-base
+    entrypoint: ["/bin/bash"]
+    command: []
+    stdin_open: true
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # SIMPLE eval worker. Uses simple:latest (already built on host). Mounts the
+  # extern/simple submodule source on top of the image's /workspace/SIMPLE/src
+  # so we control the exact code being evaluated. The rest of /workspace/SIMPLE
+  # (venv, third_party, cuRobo caches) is inherited from the image.
+  # ---------------------------------------------------------------------------
+  simple-eval:
+    image: simple:latest
+    runtime: nvidia
+    network_mode: host
+    shm_size: "16gb"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=${EVAL_GPUS:-0}
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
+      - OMNI_KIT_ACCEPT_EULA=Y
+      - MUJOCO_GL=egl
+      - DISPLAY=${DISPLAY:-:0}
+      - HF_TOKEN=${HF_TOKEN:-}
+      # CUDA NPP libs (needed by torchcodec → ffmpeg → libnppicc.so.12) live
+      # under /usr/local/cuda-12.8 in the simple image but aren't on the default
+      # LD_LIBRARY_PATH (the image was built from an IsaacSim base, not nvidia/cuda).
+      - LD_LIBRARY_PATH=/usr/local/cuda-12.8/targets/x86_64-linux/lib:/usr/local/cuda-12.8/lib64
+    volumes:
+      - ${LINEXA_ROOT}/extern/simple/src:/workspace/SIMPLE/src
+      - ${LINEXA_ROOT}/data:/workspace/SIMPLE/data
+      - ${LINEXA_ROOT}/logs/eval:/workspace/SIMPLE/data/evals_decoupled_wbc
+      # Persist cuRobo / warp-lang JIT caches so subsequent runs skip compile.
+      - simple-curobo-cache:/root/.cache/curobo
+      - simple-warp-cache:/root/.cache/warp
+      - simple-torch-ext:/root/.cache/torch_extensions
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    working_dir: /workspace/SIMPLE
+    # use the image's default entrypoint (/usr/bin/env) so command args pass
+    # through unchanged — required for `python -m simple.cli.*` invocations.
+    stdin_open: true
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Helper service — runs the HuggingFace CLI. Reused by the download scripts.
+  # Uses psi0:latest because it already ships the `hf` binary. No GPU.
+  # ---------------------------------------------------------------------------
+  hf-cli:
+    image: psi0:latest
+    entrypoint: ["/opt/venv-psi/bin/hf"]
+    command: ["--help"]
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+      - HF_HOME=/hfm/cache
+    volumes:
+      - ${LINEXA_ROOT}/data:/workspace/data
+      - ${LINEXA_ROOT}/checkpoints:/workspace/checkpoints
+      - ${LINEXA_ROOT}/data/psi_home:/hfm
+
+volumes:
+  simple-curobo-cache:
+  simple-warp-cache:
+  simple-torch-ext:

@@ -20,6 +20,15 @@ outputs/
 logs/
 tmp/
 
+# Eval bulk artifacts (fetched via scripts/eval/) — keep .gitkeep
+data/*
+!data/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+
+# Docker overrides / secrets
+docker/.env
+
 # OS / editors
 .DS_Store
 .idea/
@@ -31,3 +40,4 @@ claude/
 claude-project/
 .claude.json
 .claude.jsonl
+.codex
