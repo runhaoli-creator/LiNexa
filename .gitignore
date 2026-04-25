@@ -33,6 +33,13 @@ docker/.env
 .DS_Store
 .idea/
 .vscode/
+*.swp
+*.swo
+
+# NFS silly-renamed files (.nfsXXXXXXXX), produced when a deleted file is
+# still held open over NFS. Never belongs in version control.
+.nfs*
+**/.nfs*
 
 # Claude harness
 .claude/
@@ -42,3 +49,6 @@ claude-project/
 .claude.jsonl
 CLAUDE.md
 .codex
+
+# Internal review correspondence (kept locally, not in repo)
+issue.md

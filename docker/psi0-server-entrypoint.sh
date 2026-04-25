@@ -49,6 +49,29 @@ fi
 echo "[psi0-server] run=${PSI0_RUN_DIR}"
 echo "[psi0-server] step=${PSI0_CKPT_STEP} port=${PSI0_SERVER_PORT} horizon=${PSI0_ACTION_HORIZON} rtc=${PSI0_RTC}"
 
+# LiNexa branch: when LINEXA_TTT_ENABLED=1 launch the in-process monkey-patched
+# wrapper from src/linexa/eval/serve_psi0_linexa.py. Default (0) execs the
+# upstream serve_psi0 console script unchanged.
+linexa_enabled="${LINEXA_TTT_ENABLED:-0}"
+case "${linexa_enabled,,}" in
+  1|true|yes|on)
+    if [ -z "${LINEXA_SRC:-}" ] || [ ! -d "${LINEXA_SRC}" ]; then
+      echo "[psi0-server] FATAL: LINEXA_TTT_ENABLED=${linexa_enabled} but LINEXA_SRC is not a mounted directory." >&2
+      echo "[psi0-server] Expected docker-compose to mount \${LINEXA_ROOT}/src and export LINEXA_SRC." >&2
+      exit 1
+    fi
+    export PYTHONPATH="${LINEXA_SRC}:${PYTHONPATH:-}"
+    echo "[psi0-server] linexa: enabled (PYTHONPATH=${PYTHONPATH})"
+    exec /opt/venv-psi/bin/python -m linexa.eval.serve_psi0_linexa \
+      --host "${PSI0_SERVER_HOST}" \
+      --port "${PSI0_SERVER_PORT}" \
+      --run-dir "${PSI0_RUN_DIR}" \
+      --ckpt-step "${PSI0_CKPT_STEP}" \
+      --action-exec-horizon "${PSI0_ACTION_HORIZON}" \
+      "${rtc_args[@]}"
+    ;;
+esac
+
 exec /opt/venv-psi/bin/serve_psi0 \
   --host "${PSI0_SERVER_HOST}" \
   --port "${PSI0_SERVER_PORT}" \

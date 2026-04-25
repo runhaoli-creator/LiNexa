@@ -2,7 +2,7 @@
 
 Research scaffolding for **episode-level fast-weight adaptation** in humanoid VLA models, inspired by In-Place TTT.
 
-> **Status:** scaffolding only. No method implementation yet.
+> **Status:** Phase 0 landed — optional, no-op-equivalent fast-weight wrapper around the Ψ₀ action expert's `ff_act`. Default behavior is unchanged. The outcome-aligned write rule (Mode B) is not implemented; see `plan.md` §7.
 
 ## Goal
 
@@ -133,6 +133,66 @@ bash scripts/eval/stop.sh -v       # also wipe the cuRobo / JIT cache volumes
 
 See `docker/.env.sample` for every knob (ports, action horizon, GPU
 selection, RTC on/off).
+
+## LiNexa Phase 0: optional fast-weight wrapper
+
+The Phase 0 implementation adds a resettable fast-weight wrapper around the
+final projection of `VLATransformerBlock.ff_act` in Ψ₀'s action expert (see
+`plan.md` §5). It does **not** implement an outcome-aligned write rule yet —
+that is Mode B, gated behind explicit knobs and currently `NotImplementedError`.
+
+### Default behavior is unchanged
+
+With `LINEXA_TTT_ENABLED=0` (the default in `docker/.env.sample`), the
+entrypoint script execs the upstream `serve_psi0` console script directly.
+No LiNexa code is imported and the original Ψ₀ inference path is byte-identical
+to the pre-LiNexa baseline.
+
+### Enable the wrapper
+
+Set in `docker/.env`:
+
+```dotenv
+LINEXA_TTT_ENABLED=1
+# Optional: comma-separated VLATransformerBlock indices to wrap (empty = all).
+LINEXA_TTT_LAYERS=
+# Mode B knobs — must stay 0.0 in Phase 0; nonzero raises at install time.
+LINEXA_TTT_WRITE_SCALE=0.0
+LINEXA_TTT_DECAY=0.0
+LINEXA_TTT_CLIP=0.0
+LINEXA_TTT_LOG_STATS=0
+```
+
+Then restart the server (`scripts/eval/stop.sh && scripts/eval/serve_psi0.sh`).
+The entrypoint will launch `python -m linexa.eval.serve_psi0_linexa`, which
+monkey-patches `psi.deploy.psi0_serve_simple.Server` in process to install
+wrappers after model load and clear them on each `history={"reset": True}`
+request — no submodule patches required.
+
+### Phase 0 safety contract
+
+- Empty fast-weight cache → wrapper delegates to the wrapped module
+  (bit-exact baseline).
+- Zero ΔW slow path → matches the wrapped module within `max|Δ| < 1e-5` (fp32).
+- `cache.reset()` clears all per-layer deltas and is invoked on the existing
+  `history.reset` signal.
+- Setting any nonzero write knob raises a clear `RuntimeError` at server
+  startup — Mode B is not silently enabled.
+
+### Tests
+
+The suite under `tests/` covers config parsing, Phase 0 install-time safety,
+and the wrapper-equivalence contract. From any environment that has `torch`
+and `diffusers` installed (e.g. inside the `psi0:latest` container):
+
+```bash
+PYTHONPATH=src pytest tests/
+```
+
+`tests/test_config.py` and `tests/test_adapter_safety.py` need only
+`torch + pytest`; `tests/test_fast_ff_wrapper.py` additionally needs
+`diffusers`. Tests `importorskip` so missing optional deps skip rather than
+fail.
 
 ### Notes on custom Docker work
 

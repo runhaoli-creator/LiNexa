@@ -31,6 +31,15 @@ x-psi0-server-base: &psi0-server-base
     - PSI0_SERVER_PORT=${PSI0_SERVER_PORT:-22085}
     - PSI0_ACTION_HORIZON=${PSI0_ACTION_HORIZON:-24}
     - PSI0_RTC=${PSI0_RTC:-1}
+    # LiNexa optional online-adaptation path. Default (0) keeps the original
+    # psi0 inference path unchanged. See src/linexa/eval/serve_psi0_linexa.py.
+    - LINEXA_TTT_ENABLED=${LINEXA_TTT_ENABLED:-0}
+    - LINEXA_TTT_LAYERS=${LINEXA_TTT_LAYERS:-}
+    - LINEXA_TTT_WRITE_SCALE=${LINEXA_TTT_WRITE_SCALE:-0.0}
+    - LINEXA_TTT_DECAY=${LINEXA_TTT_DECAY:-0.0}
+    - LINEXA_TTT_CLIP=${LINEXA_TTT_CLIP:-0.0}
+    - LINEXA_TTT_LOG_STATS=${LINEXA_TTT_LOG_STATS:-0}
+    - LINEXA_SRC=/linexa-src
   volumes:
     # psi0 source (editable install .pth points at /workspace/src)
     - ${LINEXA_ROOT}/extern/psi0:/workspace
@@ -40,6 +49,8 @@ x-psi0-server-base: &psi0-server-base
     - ${LINEXA_ROOT}/data/psi_home:/hfm
     # Server-side entrypoint (image ships nvidia entrypoint, we override)
     - ${LINEXA_ROOT}/docker/psi0-server-entrypoint.sh:/opt/psi0-server-entrypoint.sh:ro
+    # LiNexa code: read-only; only used when LINEXA_TTT_ENABLED=1.
+    - ${LINEXA_ROOT}/src:/linexa-src:ro
   working_dir: /workspace
   entrypoint: ["/bin/bash", "/opt/psi0-server-entrypoint.sh"]
 
