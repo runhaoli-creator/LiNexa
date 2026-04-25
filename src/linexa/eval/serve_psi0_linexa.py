@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from typing import Any, Dict
 
 from linexa.adapters import psi0 as adapter
 from linexa.ttt.config import LinexaConfig
@@ -36,7 +37,11 @@ def _patch(upstream) -> None:
             self._linexa_cfg = LinexaConfig.from_env()
             adapter.install(self.model, self._linexa_cfg)
 
-        def predict_action(self, payload):
+        # Signature must match upstream Server.predict_action(self, payload: Dict[str, Any])
+        # exactly — FastAPI inspects the bound method's annotations to validate the request
+        # body. Dropping the annotation makes FastAPI treat ``payload`` as a query param,
+        # producing 422 on every /act call.
+        def predict_action(self, payload: Dict[str, Any]):
             if isinstance(payload, dict):
                 history = payload.get("history")
                 if isinstance(history, dict) and "reset" in history:
@@ -44,10 +49,13 @@ def _patch(upstream) -> None:
             return super().predict_action(payload)
 
     upstream.Server = LinexaServer
-    logger.info("linexa: monkey-patched %s.Server -> LinexaServer", upstream.__name__)
+    msg = f"linexa: monkey-patched {upstream.__name__}.Server -> LinexaServer"
+    logger.info(msg)
+    print(msg, flush=True)
 
 
 def main() -> None:
+    print("linexa: serve_psi0_linexa.main() entered", flush=True)
     from psi.deploy import psi0_serve_simple as upstream
 
     _patch(upstream)

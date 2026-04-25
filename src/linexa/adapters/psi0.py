@@ -113,10 +113,15 @@ def install(model: nn.Module, cfg: LinexaConfig) -> Optional[FastWeightCache]:
     model._linexa_blocks = blocks  # type: ignore[attr-defined]
     model._linexa_cfg = cfg  # type: ignore[attr-defined]
 
-    logger.info(
-        "linexa: installed FastFFWrapper on %d / %d action-expert blocks (idx=%s)",
-        len(wrapped), len(blocks), wrapped,
+    msg = (
+        f"linexa: installed FastFFWrapper on {len(wrapped)} / {len(blocks)} "
+        f"action-expert blocks (idx={wrapped})"
     )
+    logger.info(msg)
+    # Upstream psi0 serving uses overwatch logging, which doesn't surface
+    # logging.getLogger('linexa.*') output. Print to stdout as a guaranteed
+    # signal that the install succeeded; the orchestrator greps for this line.
+    print(msg, flush=True)
     return cache
 
 
