@@ -40,4 +40,5 @@ claude/
 claude-project/
 .claude.json
 .claude.jsonl
+CLAUDE.md
 .codex
