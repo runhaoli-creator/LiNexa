@@ -307,7 +307,7 @@ Purpose:
 Behavior:
 
 - enabled only by explicit config
-- starts with the simplest candidate from `state_of_idea.md`
+- starts with the simplest candidate from `idea.md`
 - uses stability knobs from day one:
   - write scale
   - EMA decay

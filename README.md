@@ -2,7 +2,7 @@
 
 Research scaffolding for **episode-level fast-weight adaptation** in humanoid VLA models, inspired by In-Place TTT.
 
-> **Status:** Phase 0 landed — optional, no-op-equivalent fast-weight wrapper around the Ψ₀ action expert's `ff_act`. Default behavior is unchanged. The outcome-aligned write rule (Mode B) is not implemented; see `plan.md` §7.
+> **Status:** Phase 0 landed — optional, no-op-equivalent fast-weight wrapper around the Ψ₀ action expert's `ff_act`. Default behavior is unchanged. The outcome-aligned write rule (Mode B) is not implemented; see [`docs/plan.md`](docs/plan.md) §7.
 
 ## Goal
 
@@ -31,7 +31,7 @@ Submodule internals are **not modified in-tree**. Any required adjustments live 
 ```
 linexa/
 ├── configs/         # experiment configs (base, tasks, ablations)
-├── docs/            # idea, theory, setup, experiment plan
+├── docs/            # idea, plan, agent handoff, code-reading map, validation plan
 ├── src/linexa/      # our code: ttt, adapters, eval, utils, cli
 ├── patches/         # patches applied to extern/ submodules
 ├── scripts/         # shell entry points (setup, baseline, ttt runs)
@@ -55,7 +55,7 @@ bash scripts/apply_patches.sh
 # then see configs/ and scripts/ for runs
 ```
 
-See `docs/setup.md` for environment details.
+See [`docs/`](docs/) for design notes, the implementation plan, and the agent handoff.
 
 ## Evaluate psi0 on SIMPLE
 
@@ -138,8 +138,9 @@ selection, RTC on/off).
 
 The Phase 0 implementation adds a resettable fast-weight wrapper around the
 final projection of `VLATransformerBlock.ff_act` in Ψ₀'s action expert (see
-`plan.md` §5). It does **not** implement an outcome-aligned write rule yet —
-that is Mode B, gated behind explicit knobs and currently `NotImplementedError`.
+[`docs/plan.md`](docs/plan.md) §5). It does **not** implement an outcome-aligned
+write rule yet — that is Mode B, gated behind explicit knobs and currently
+`NotImplementedError`.
 
 ### Default behavior is unchanged
 

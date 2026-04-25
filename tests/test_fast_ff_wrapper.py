@@ -1,10 +1,10 @@
 """Phase 0 wrapper-equivalence unit tests.
 
-Verifies the safety contract from plan.md §9 / §10:
+Verifies the safety contract from docs/plan.md §9 / §10:
 
 - empty-cache fast path delegates to the wrapped module (bit-exact);
 - with ``ΔW = 0`` injected, the manual recomposition path matches the wrapped
-  module within the equivalence tolerance (``max |Δ| < 1e-5`` per plan.md §10);
+  module within the equivalence tolerance (``max |Δ| < 1e-5`` per docs/plan.md §10);
 - ``reset()`` clears the cache and restores fast-path behavior;
 - the wrapper rejects unsupported FeedForward layouts at install time.
 

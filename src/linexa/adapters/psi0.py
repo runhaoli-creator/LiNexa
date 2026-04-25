@@ -62,7 +62,7 @@ def _check_phase0_safe(cfg: LinexaConfig) -> None:
         raise RuntimeError(
             f"linexa: nonzero write knobs set ({details}) but Mode B is not "
             f"implemented. Phase 0 supports only LINEXA_TTT_ENABLED=1 with all "
-            f"write knobs at 0. See plan.md §7."
+            f"write knobs at 0. See docs/plan.md §7."
         )
 
 
@@ -149,7 +149,7 @@ def commit_outcome(model: nn.Module, *args, **kwargs) -> None:
 
     Phase 0 never invokes this. The signature is intentionally generic so the
     Phase 1 design (proprio source, ``Φ`` choice, write rule) is not pre-empted
-    here. See plan.md §7 TODO.
+    here. See docs/plan.md §7 TODO.
     """
     raise NotImplementedError(
         "linexa.adapters.psi0.commit_outcome is not implemented. "

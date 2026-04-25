@@ -5,7 +5,7 @@ key space of the wrapped feed-forward (post-GELU activation, dim 6144 for the
 default Psi0 action expert). Phase 0 never instantiates this; it is here so
 that Phase 1 has a clear, file-local home for the design choice.
 
-See ``state_of_idea.md`` §6 and ``plan.md`` §7 for context.
+See ``docs/idea.md`` §6 and ``docs/plan.md`` §7 for context.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ class IdentityPhi(nn.Module):
 
     Useful as a confound-removed sanity baseline: the write target is the raw
     proprio signal, modulo dimension. Should be considered a plumbing test, not
-    a learned method (plan.md §7 caveat).
+    a learned method (docs/plan.md §7 caveat).
     """
 
     def __init__(self, in_dim: int, out_dim: int) -> None:

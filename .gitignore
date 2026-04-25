@@ -19,6 +19,7 @@ wandb/
 outputs/
 logs/
 tmp/
+reports/
 
 # Eval bulk artifacts (fetched via scripts/eval/) — keep .gitkeep
 data/*

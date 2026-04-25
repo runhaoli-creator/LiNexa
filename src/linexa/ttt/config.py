@@ -2,7 +2,7 @@
 
 Phase 0 reads configuration from environment variables so the docker entrypoint
 can toggle behavior without touching application code. YAML/Hydra integration
-is deferred until the API stabilises (see plan.md §4).
+is deferred until the API stabilises (see docs/plan.md §4).
 """
 from __future__ import annotations
 

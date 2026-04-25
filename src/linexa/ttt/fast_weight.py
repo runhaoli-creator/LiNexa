@@ -1,7 +1,7 @@
 """Episode-local fast-weight cache.
 
 Holds per-layer ``ΔW`` deltas added to the base ``net[2].weight`` of a Diffusers
-``FeedForward`` (see plan.md §5). Base parameters are never mutated. Reset
+``FeedForward`` (see docs/plan.md §5). Base parameters are never mutated. Reset
 clears the cache and restores baseline behavior.
 
 Phase 0 never invokes ``commit`` — the cache stays empty for the whole run, so
@@ -51,7 +51,7 @@ class FastWeightCache:
             ΔW_new = clip_by_norm(ΔW_new, clip)
 
         Implementation deferred until the outcome target ``Φ(...)`` and the
-        write rule are pinned (plan.md §7 TODO).
+        write rule are pinned (docs/plan.md §7 TODO).
         """
         raise NotImplementedError(
             "FastWeightCache.commit is not implemented in Phase 0. "
